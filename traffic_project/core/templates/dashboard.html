@@ -1,0 +1,696 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nepal Speed Estimation of vehicle | Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --accent-color: #e74c3c;
+            --bg-color: #f8f9fa;
+            --card-shadow: 0 10px 20px rgba(0,0,0,0.05);
+        }
+        
+        body { 
+            background-color: var(--bg-color); 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+        }
+
+        /* Navbar */
+        .navbar {
+            background: white;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+            padding: 1rem 0;
+        }
+        .navbar-brand {
+            font-weight: 800;
+            color: var(--primary-color) !important;
+            letter-spacing: -0.5px;
+        }
+
+        /* Hero Section */
+        .hero-section {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: white;
+            padding: 60px 0 40px;
+            margin-bottom: -60px; /* Overlap effect */
+            border-radius: 0 0 20px 20px;
+        }
+
+        /* Main Content Container */
+        .main-container {
+            margin-top: 20px;
+        }
+
+        /* Custom Cards */
+        .custom-card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: var(--card-shadow);
+            background: white;
+            overflow: hidden;
+            transition: transform 0.2s ease;
+            height: auto;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .custom-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .card-header-custom {
+            background: white;
+            border-bottom: 1px solid #f1f1f1;
+            padding: 20px 25px;
+            font-weight: 700;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+        }
+
+        .card-body-custom {
+            padding: 25px;
+            flex: 1;
+        }
+
+        /* Upload Zone */
+        .upload-zone {
+            border: 2px dashed #dfe6e9;
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            background: #fdfdfd;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        .upload-zone:hover {
+            border-color: var(--accent-color);
+            background: #fff5f5;
+        }
+
+        /* Stat Cards */
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+        }
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--primary-color);
+            line-height: 1.1;
+        }
+        .stat-label {
+            color: #95a5a6;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+
+        /* Colors */
+        .bg-blue-soft { background: rgba(52, 152, 219, 0.1); color: #3498db; }
+        .bg-red-soft { background: rgba(231, 76, 60, 0.1); color: #e74c3c; }
+        .bg-green-soft { background: rgba(46, 204, 113, 0.1); color: #2ecc71; }
+        .bg-orange-soft { background: rgba(243, 156, 18, 0.1); color: #f39c12; }
+        
+        /* Dynamic Colors for Flow */
+        .bg-flow-red { background: rgba(231, 76, 60, 0.1); color: #e74c3c; }
+        .bg-flow-orange { background: rgba(243, 156, 18, 0.1); color: #f39c12; }
+        .bg-flow-green { background: rgba(46, 204, 113, 0.1); color: #2ecc71; }
+
+
+        /* Button */
+        .btn-primary-custom {
+            background: var(--accent-color);
+            border: none;
+            padding: 12px 30px;
+            border-radius: 10px;
+            font-weight: 600;
+            color: white;
+            width: 100%;
+            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
+            transition: all 0.3s;
+        }
+        .btn-primary-custom:hover {
+            background: #c0392b;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(231, 76, 60, 0.4);
+            color: white;
+        }
+        
+        /* Disabled Button State */
+        .btn-primary-custom:disabled {
+            background-color: #bdc3c7;
+            box-shadow: none;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Loader */
+        #loadingOverlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(255,255,255,0.95);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        
+        .placeholder-image {
+            background: linear-gradient(45deg, #ecf0f1, #bdc3c7);
+            min-height: 350px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            color: #7f8c8d;
+        }
+        
+        /* Calibration Overlay Styles */
+        #calibration-video-container {
+            position: relative;
+            background: #000;
+            width: 100%;
+            overflow: hidden;
+            border-radius: 4px;
+        }
+        /* Important: Removed object-fit: cover to prevent cropping */
+        #calibration-video-container video {
+            width: 100%;
+            height: auto; /* Let height adapt to aspect ratio */
+            max-height: 600px; /* Prevent it from getting too tall */
+            display: block;
+            margin: 0 auto; /* Center if width < container */
+            cursor: crosshair;
+        }
+        .calibration-point {
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            background: yellow;
+            border: 3px solid #e74c3c;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none; 
+            z-index: 10;
+            font-size: 0.7rem;
+            color: var(--primary-color);
+            text-align: center;
+            line-height: 10px;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-video me-2 text-danger"></i>Vehicle Speed Estimation <span class="badge bg-danger text-white ms-2" style="font-size: 0.5em; vertical-align: middle;">NEPAL EDITION</span>
+            </a>
+            <div class="d-flex align-items-center">
+                <div class="me-3 text-end d-none d-sm-block">
+                    <div class="fw-bold small text-dark">{{ user.username|upper }}</div>
+                    <div class="text-muted" style="font-size: 0.7rem;">Administrator</div>
+                </div>
+                <form action="{% url 'logout' %}" method="post" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+                        <i class="fas fa-sign-out-alt me-1"></i> Logout
+                    </button>
+                </form>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Header -->
+    <div class="hero-section text-center">
+        <div class="container">
+            <h2 class="fw-bold mb-2">Welcome back, {{ user.username|title }}! 👋</h2>
+            <p class="opacity-75 mb-0">Vehicle Speed Detection & Traffic Analysis System</p>
+        </div>
+    </div>
+
+    <!-- Loading Screen -->
+    <div id="loadingOverlay">
+        <div class="spinner-grow text-danger mb-4" style="width: 3rem; height: 3rem;" role="status"></div>
+        <h4 class="fw-bold text-dark">Analyzing Footage...</h4>
+        <p class="text-muted">Running YOLOv8 & EasyOCR</p>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container main-container pb-5">
+        <div class="row justify-content-center">
+            
+            <!-- Left Column: Upload & Guide -->
+            <div class="col-lg-5 mb-4">
+                
+                <!-- Upload Card (Always visible) -->
+                <div class="custom-card mb-4">
+                    <div class="card-header-custom">
+                        <i class="fas fa-cloud-upload-alt me-2 text-danger"></i> Upload Footage
+                    </div>
+                    <div class="card-body-custom">
+                        <form method="post" enctype="multipart/form-data" id="upload-form">
+                            {% csrf_token %}
+                            <div class="upload-zone mb-4 position-relative">
+                                <input type="file" name="video_file" id="video-file-input" accept=".mp4,.avi" class="position-absolute top-0 start-0 w-100 h-100 opacity-0" required style="cursor: pointer;">
+                                <i class="fas fa-film fa-3x text-muted mb-3" id="upload-icon"></i>
+                                <h6 class="fw-bold mb-1" id="upload-text">Select Video File</h6>
+                                <p class="text-muted small mb-0" id="upload-subtext">MP4, AVI (Max 50MB)</p>
+                            </div>
+                            <button type="submit" class="btn btn-primary-custom">
+                                Upload Video <i class="fas fa-arrow-right ms-2"></i>
+                            </button>
+                        </form>
+                        {% if error %}
+                        <div class="alert alert-danger mt-3 border-0 bg-red-soft">
+                            <i class="fas fa-exclamation-circle me-2"></i>{{ error }}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- How it Works (Always visible) -->
+                <div class="custom-card">
+                    <div class="card-header-custom">
+                        <i class="fas fa-info-circle me-2 text-primary"></i> How It Works
+                    </div>
+                    <div class="card-body-custom">
+                        <ul class="list-unstyled mb-0">
+                            <li class="d-flex align-items-start mb-3">
+                                <span class="badge bg-blue-soft rounded-circle p-2 me-3">1</span>
+                                <div>
+                                    <strong>Upload Video</strong>
+                                    <p class="text-muted small mb-0">Select traffic footage from your device.</p>
+                                </div>
+                            </li>
+                            <li class="d-flex align-items-start mb-3">
+                                <span class="badge bg-red-soft rounded-circle p-2 me-3">2</span>
+                                <div>
+                                    <strong>Set Parameters</strong>
+                                    <p class="text-muted small mb-0">Define 4 points & real-world distance.</p>
+                                </div>
+                            </li>
+                            <li class="d-flex align-items-start">
+                                <span class="badge bg-green-soft rounded-circle p-2 me-3">3</span>
+                                <div>
+                                    <strong>View Results</strong>
+                                    <p class="text-muted small mb-0">Get speed & count analytics.</p>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Calibration / Results / Placeholder -->
+            <div class="col-lg-7">
+
+                {% if show_calibration %}
+                <!-- CALIBRATION STEP -->
+                <div class="custom-card">
+                    <div class="card-header-custom">
+                        <i class="fas fa-crosshairs me-2 text-warning"></i> Step 2: Configuration
+                    </div>
+                    <div class="card-body-custom p-0">
+                        <div class="p-3 bg-light border-bottom">
+                            <p class="fw-bold mb-1 text-danger">A. Calibration (Click 4 Points):</p>
+                            <p class="small text-muted mb-2">Order: Top-Left -> Top-Right -> Bottom-Right -> Bottom-Left</p>
+                            <ul class="small mb-0 list-unstyled">
+                                <li>1: <span class="fw-bold">Top-Left (Far)</span></li>
+                                <li>2: <span class="fw-bold">Top-Right (Far)</span></li>
+                                <li>3: <span class="fw-bold">Bottom-Right (Near)</span></li>
+                                <li>4: <span class="fw-bold">Bottom-Left (Near)</span></li>
+                            </ul>
+                        </div>
+                        
+                        <!-- Fixed Video Container -->
+                        <div class="bg-black text-center">
+                            <div id="calibration-video-container" class="d-inline-block position-relative">
+                                <video id="calibration-video" controls playsinline muted loop 
+                                    src="{{ uploaded_file_url }}"></video>
+                            </div>
+                        </div>
+
+                        <div class="p-3">
+                            <form method="post" id="calibration-form">
+                                {% csrf_token %}
+                                <input type="hidden" name="calibration_points" id="calibration-points-input" required>
+                                
+                                <!-- Improved Point List Spacing -->
+                                <div id="point-list" class="mb-4 d-flex flex-wrap gap-2 justify-content-center">
+                                    <span class="badge bg-secondary p-2">1: <span id="p1-coords">N/A</span></span>
+                                    <span class="badge bg-secondary p-2">2: <span id="p2-coords">N/A</span></span>
+                                    <span class="badge bg-secondary p-2">3: <span id="p3-coords">N/A</span></span>
+                                    <span class="badge bg-secondary p-2">4: <span id="p4-coords">N/A</span></span>
+                                </div>
+                                
+                                <hr class="my-4">
+                                <p class="fw-bold mb-3 text-danger">B. Real World Settings:</p>
+                                <div class="row g-3 mb-4">
+                                    <div class="col-md-4">
+                                        <label class="small text-muted fw-bold mb-1">Zone Width (m)</label>
+                                        <input type="number" step="0.1" name="zone_width" class="form-control" value="4.0" required>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="small text-muted fw-bold mb-1">Zone Length (m)</label>
+                                        <input type="number" step="0.1" name="zone_length" class="form-control" value="10.0" required>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="small text-muted fw-bold mb-1">AI Model</label>
+                                        <select name="model_type" class="form-select">
+                                            <option value="yolov8n.pt" selected>YOLOv8 Nano (Fast)</option>
+                                            <option value="yolov8m.pt">YOLOv8 Medium (Accurate)</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="d-grid gap-2">
+                                    <button type="submit" class="btn btn-primary-custom btn-lg" id="process-button" disabled>
+                                        <i class="fas fa-bolt me-2"></i> Start Analysis
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="resetCalibration()">
+                                        Reset Points
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% elif processed_file_url %}
+                
+                <!-- RESULTS STEP -->
+                <div class="row g-3 mb-4">
+                    
+                    <!-- Total Vehicles (col-md-3) -->
+                    <div class="col-md-3">
+                        <div class="custom-card p-4 text-center">
+                            <div class="stat-icon bg-blue-soft mx-auto">
+                                <i class="fas fa-car"></i>
+                            </div>
+                            <div class="stat-value">{{ total_vehicles }}</div>
+                            <div class="stat-label">Vehicles in Zone</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Avg Speed (col-md-3) -->
+                    <div class="col-md-3">
+                        <div class="custom-card p-4 text-center">
+                            <div class="stat-icon bg-green-soft mx-auto">
+                                <i class="fas fa-tachometer-alt"></i>
+                            </div>
+                            <div class="stat-value">{{ avg_speed }}</div>
+                            <div class="stat-label">Avg Speed (km/h)</div>
+                        </div>
+                    </div>
+
+                    <!-- Max Speed (col-md-3) -->
+                    <div class="col-md-3">
+                        <div class="custom-card p-4 text-center">
+                            <div class="stat-icon bg-red-soft mx-auto">
+                                <i class="fas fa-bolt"></i>
+                            </div>
+                            <div class="stat-value">{{ max_speed }}</div>
+                            <div class="stat-label">Max Speed (km/h)</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Traffic Flow (col-md-3) -->
+                    <div class="col-md-3">
+                        <div class="custom-card p-4 text-center">
+                            <div class="stat-icon {% if traffic_flow_color == 'red' %}bg-flow-red{% elif traffic_flow_color == 'orange' %}bg-flow-orange{% else %}bg-flow-green{% endif %} mx-auto">
+                                <i class="fas fa-road"></i>
+                            </div>
+                            <div class="stat-value">{{ traffic_flow_level }}</div>
+                            <div class="stat-label">Flow Level</div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Actual Video Player -->
+                <div class="custom-card">
+                    <div class="card-header-custom d-flex justify-content-between">
+                        <span><i class="fas fa-play-circle me-2 text-danger"></i> Analysis Result</span>
+                        <span class="badge bg-success text-white">Complete</span>
+                    </div>
+                    <div class="card-body-custom p-0">
+                        <div class="bg-dark text-center">
+                            <video controls autoplay playsinline src="{{ processed_file_url }}" style="width:100%; max-height:600px;">
+                                <source src="{{ processed_file_url }}" type="video/mp4">
+                                Browser not supported.
+                            </video>
+                        </div>
+                        <div class="p-3 d-flex gap-2">
+                            <a href="{{ processed_file_url }}" class="btn btn-outline-primary flex-grow-1" download>
+                                <i class="fas fa-download me-2"></i> Download Video
+                            </a>
+                            <!-- RELOAD BUTTON -->
+                            <a href="{% url 'dashboard' %}?action=reset" class="btn btn-primary-custom flex-grow-1 text-center" style="padding-top:12px;">
+                                <i class="fas fa-redo me-2"></i> Analyze Another
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                {% else %}
+                <!-- Initial Placeholder State (Before processing) -->
+                
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <div class="custom-card p-4 text-center">
+                            <div class="stat-icon bg-blue-soft mx-auto">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div class="stat-value">-</div>
+                            <div class="stat-label">Hours</div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <div class="custom-card p-4 text-center">
+                            <div class="stat-icon bg-orange-soft mx-auto">
+                                <i class="fas fa-traffic-light"></i>
+                            </div>
+                            <div class="stat-value">-</div>
+                            <div class="stat-label">Points</div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="custom-card p-4 text-center">
+                            <div class="stat-icon bg-green-soft mx-auto">
+                                <i class="fas fa-database"></i>
+                            </div>
+                            <div class="stat-value">-</div>
+                            <div class="stat-label">Logged</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="custom-card">
+                    <div class="card-header-custom">
+                        <i class="fas fa-chart-line me-2 text-danger"></i> Real-time Overview
+                    </div>
+                    <div class="card-body-custom p-0">
+                        <div class="placeholder-image p-5">
+                            <i class="fas fa-desktop fa-4x mb-3"></i>
+                            <h4 class="fw-bold">Ready to Analyze</h4>
+                            <p class="text-center small mb-0">Upload video to begin.</p>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let calibrationPoints = [];
+        const maxPoints = 4;
+        const videoContainer = document.getElementById('calibration-video-container');
+        const videoElement = document.getElementById('calibration-video');
+        const processButton = document.getElementById('process-button');
+        const pointsInput = document.getElementById('calibration-points-input');
+
+        function updatePointDisplay() {
+            // Update the coordinate badges
+            for (let i = 0; i < maxPoints; i++) {
+                const pointDisplay = document.getElementById(`p${i + 1}-coords`);
+                if (pointDisplay) {
+                    if (calibrationPoints[i]) {
+                        pointDisplay.textContent = `${calibrationPoints[i][0]}, ${calibrationPoints[i][1]}`;
+                        pointDisplay.parentElement.classList.remove('bg-secondary');
+                        pointDisplay.parentElement.classList.add('bg-success');
+                    } else {
+                        pointDisplay.textContent = 'N/A';
+                        pointDisplay.parentElement.classList.add('bg-secondary');
+                        pointDisplay.parentElement.classList.remove('bg-success');
+                    }
+                }
+            }
+
+            // Update button state and hidden input
+            if (calibrationPoints.length === maxPoints) {
+                processButton.disabled = false;
+                pointsInput.value = JSON.stringify(calibrationPoints);
+            } else {
+                processButton.disabled = true;
+                pointsInput.value = '';
+            }
+        }
+        
+        function drawPoints() {
+            // Remove existing points
+            document.querySelectorAll('.calibration-point').forEach(p => p.remove());
+
+            if (!videoElement || videoElement.videoWidth === 0) return;
+            
+            const rect = videoContainer.getBoundingClientRect();
+            
+            // Ensure we are drawing relative to the rendered video size
+            // Note: videoContainer wraps the video element tightly in the new CSS
+            
+            calibrationPoints.forEach((p, index) => {
+                const pointDiv = document.createElement('div');
+                pointDiv.className = 'calibration-point';
+                pointDiv.textContent = index + 1;
+                
+                // Convert intrinsic video pixel coordinates (p[0], p[1]) back to display coordinates
+                // We use videoElement.offsetWidth/Height because the video is now adapting to the container
+                const displayX = (p[0] / videoElement.videoWidth) * videoElement.offsetWidth;
+                const displayY = (p[1] / videoElement.videoHeight) * videoElement.offsetHeight;
+                
+                pointDiv.style.left = `${displayX}px`;
+                pointDiv.style.top = `${displayY}px`;
+
+                videoContainer.appendChild(pointDiv);
+            });
+        }
+        
+        function handleCalibrationClick(event) {
+            // Check if the click originated from the video element itself
+            if (event.target !== videoElement) {
+                return;
+            }
+
+            if (calibrationPoints.length >= maxPoints) {
+                return; 
+            }
+
+            // Get the bounding rectangle of the video element in the browser window
+            const rect = videoElement.getBoundingClientRect();
+            
+            // Calculate mouse position relative to the video element's displayed area
+            const clickX = event.clientX - rect.left;
+            const clickY = event.clientY - rect.top;
+            
+            // Crucial step: Convert the mouse position (in display pixels) to 
+            // the video's intrinsic resolution pixels (the size OpenCV sees).
+            const x = Math.round(clickX / rect.width * videoElement.videoWidth);
+            const y = Math.round(clickY / rect.height * videoElement.videoHeight);
+
+            // Add the new point [x, y]
+            calibrationPoints.push([x, y]);
+            
+            updatePointDisplay();
+            drawPoints();
+        }
+
+        window.resetCalibration = function() {
+            calibrationPoints = [];
+            updatePointDisplay();
+            drawPoints();
+        }
+
+        // Initialization logic for the calibration step
+        if (videoContainer && videoElement) {
+            
+            // A helper function to ensure the video is paused
+            const ensureVideoPaused = () => {
+                 // Check if the video is currently playing (or loading to play) and pause it
+                if (videoElement.readyState >= 3 && !videoElement.paused) {
+                    videoElement.pause();
+                }
+            };
+
+            // Wait for the video metadata to load (to get videoWidth/videoHeight)
+            videoElement.addEventListener('loadedmetadata', () => {
+                // Pause the video immediately for calibration
+                ensureVideoPaused();
+                // We need to wait a moment for the frame to render on the canvas/element
+                setTimeout(drawPoints, 100); 
+            });
+
+            // Ensure the video is paused as soon as possible if the page loads in a state
+            // where calibration is active (e.g., after a redirect).
+            if (videoElement.readyState >= 1) {
+                ensureVideoPaused();
+            }
+            
+            // Set up the click handler on the video element itself
+            videoElement.addEventListener('click', handleCalibrationClick);
+            
+            // Set up the form submission handler to show the loader
+            document.getElementById('calibration-form').addEventListener('submit', function() {
+                document.getElementById('loadingOverlay').style.display = 'flex';
+            });
+            
+            // Redraw points on window resize to keep them aligned
+            window.addEventListener('resize', drawPoints);
+        }
+        
+        // --- UPLOAD FEEDBACK JS ---
+        const fileInput = document.getElementById('video-file-input');
+        if (fileInput) {
+            const uploadText = document.getElementById('upload-text');
+            const uploadSubtext = document.getElementById('upload-subtext');
+            const uploadIcon = document.getElementById('upload-icon');
+            const uploadZone = document.querySelector('.upload-zone');
+
+            fileInput.addEventListener('change', function() {
+                if (this.files && this.files.length > 0) {
+                    const fileName = this.files[0].name;
+                    uploadText.textContent = fileName;
+                    uploadSubtext.textContent = 'File selected. Click "Upload Video" to proceed.';
+                    // Change style for confirmation
+                    uploadIcon.classList.remove('text-muted', 'fa-film');
+                    uploadIcon.classList.add('text-success', 'fa-check-circle');
+                    uploadZone.style.borderColor = '#2ecc71'; // Green border for selected
+                } else {
+                    // Reset to default
+                    uploadText.textContent = 'Select Video File';
+                    uploadSubtext.textContent = 'MP4, AVI (Max 50MB)';
+                    uploadIcon.classList.add('text-muted', 'fa-film');
+                    uploadIcon.classList.remove('text-success', 'fa-check-circle');
+                    uploadZone.style.borderColor = '#dfe6e9'; // Reset border
+                }
+            });
+
+            // Ensure the upload form submit handler shows the loading overlay
+            document.getElementById('upload-form').addEventListener('submit', function() {
+                document.getElementById('loadingOverlay').style.display = 'flex';
+            });
+        }
+
+    </script>
+</body>
+</html>
